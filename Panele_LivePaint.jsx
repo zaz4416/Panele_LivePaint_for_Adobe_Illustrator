@@ -4,7 +4,7 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2025/12/20
+// Ver.1.0 : 2026/01/22
 
 #target illustrator
 #targetengine "main"
@@ -39,14 +39,13 @@ alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 //-----------------------------------
 
 // コンストラクタ    
-function CLivePaintDLg( DlgName, InstanceName ) {
+function CLivePaintDLg( DlgName ) {
     $.writeln( "コンストラクタ_CLivePaintDLg" );
 
     // 初期化
     const TheObj = this;
     CPaletteWindow.call( TheObj );          // コンストラクタ
     TheObj.InitDialog( DlgName );           // イニシャライザ
-    TheObj.InitInstance( InstanceName );    // インスタンス初期化
     const TheDialog = TheObj.GetDlg();      // ダイアログへのオブジェクトを得る
 
     var ObjPanel   = TheObj.AddPanel();
@@ -465,7 +464,7 @@ function main()
 { 
     $.writeln( "main()" );
     
-    DlgPaint = new CLivePaintDLg( WindowTitleName, "DlgPaint" );  //インスタンスを生成
+    DlgPaint = new CLivePaintDLg( WindowTitleName );  //インスタンスを生成
     //DlgPaint.addEventListener( 'keydown',  escExit );
     
     // バージョン・チェック
