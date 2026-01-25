@@ -139,7 +139,7 @@ CLivePaintDLg.BeginLivePaint_Func = function()
     { 
         // バカ除け
         var result = confirm("ライブペイント開始しますか？");
-        if ( !result )　throw new Error("");    // 何もしませんで関数を抜ける
+        if ( !result ) throw new Error("");    // 何もしませんで関数を抜ける
 
         var objPb = ProgressDlg.add("progressbar", [20,20,270,40], 1, 100); 
 		ProgressDlg.center();
