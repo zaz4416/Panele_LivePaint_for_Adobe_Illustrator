@@ -4,7 +4,7 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2026/01/22
+// Ver.1.0 : 2026/01/25
 
 #target illustrator
 #targetengine "main"
@@ -15,11 +15,11 @@ SELF = (function(){
 })();
 
 // 外部のJSXを読み込む
-$.evalFile(SELF.path + "/ZazLib/" + "SupprtFuncLib.jsx");
 $.evalFile(SELF.path + "/ZazLib/" + "PaletteWindow.jsx");
+$.evalFile(SELF.path + "/ZazLib/" + "SupprtFuncLib.jsx");
 
 
-var WindowTitleName = "ライブペイント・サポーター";
+
 var DlgPaint;
 var StaticFlagValue = false;
 var StaticActiveDoc = undefined;
@@ -39,28 +39,26 @@ alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 //-----------------------------------
 
 // コンストラクタ    
-function CLivePaintDLg( DlgName ) {
-    $.writeln( "コンストラクタ_CLivePaintDLg" );
+function CLivePaintDLg()
+{
 
-    // 初期化
-    CLivePaintDLg.TheObj = this;
     CPaletteWindow.call( this );          // コンストラクタ
-    this.InitDialog( DlgName );           // イニシャライザ
-    const TheDialog = this.GetDlg();      // ダイアログへのオブジェクトを得る
-    var ObjPanel   = this.AddPanel();
+    var self = this;
+    
+    self.m_Dialog.opacity       = 0.7; // （不透明度）
+
+    var ObjPanel   = self.AddPanel();
 
     // ダイアログにボタン追加
     m_BtnStartLivePint = ObjPanel.add( "button");
     m_BtnStartLivePint.text = "ライブペイント開始";
     m_BtnStartLivePint.onClick = function() {
-        var  Obj = CLivePaintDLg.TheObj;
-
         try {
             if ( typeof StaticActiveDoc  === "undefined" ) {
-                Obj.CallFunc( "BeginLivePaint_Func" );
+                self.CallFunc( "BeginLivePaint_Func" );
             }
             else {
-                Obj.CallFunc( "EndOfLivePaint_Func" );
+                self.CallFunc( "EndOfLivePaint_Func" );
             }
         }
         catch(e) {
@@ -91,7 +89,7 @@ function CLivePaintDLg( DlgName ) {
     // ダイアログにボタン追加
     m_BtnCancel = this.AddButton( "閉じる" );
     m_BtnCancel.onClick = function () {
-        var  Obj = CLivePaintDLg.TheObj;
+        var  Obj = CLivePaintDLg.self;
         try
         {
             if ( typeof StaticActiveDoc  !== "undefined" )
@@ -135,7 +133,7 @@ CLivePaintDLg.prototype.IsLivePaintig =  function(Obj) {
 CLivePaintDLg.BeginLivePaint_Func = function()
 { 
     var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
-    var  Obj = CLivePaintDLg.TheObj;
+    var  Obj = CLivePaintDLg.self;
  
     try
     { 
@@ -385,7 +383,7 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             }
         }
 
-        var  Obj = CLivePaintDLg.TheObj;
+        var  Obj = CLivePaintDLg.self;
         Obj.SetSelectedText(" ");
         app.selectTool('Adobe Direct Select Tool');     // ダイレクト選択
         m_BtnStartLivePint.text = "ライブペイント開始";
@@ -456,7 +454,7 @@ function MoveItems( SrcGrX, DisGrX )
 
  function escExit(event) {
     if(event.keyName === 'Escape'){
-        alert( WindowTitleName+"を終わります。" );
+        alert( "終わります。" );
         DlgPaint.IsLivePaintig();
         DlgPaint.CloseDlg();
     }
@@ -469,7 +467,7 @@ function main()
 { 
     $.writeln( "main()" );
     
-    DlgPaint = new CLivePaintDLg( WindowTitleName );  //インスタンスを生成
+    DlgPaint = new CLivePaintDLg();  //インスタンスを生成
     //DlgPaint.addEventListener( 'keydown',  escExit );
     
     // バージョン・チェック
