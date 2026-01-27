@@ -45,8 +45,7 @@ alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 // コンストラクタ    
 function CLivePaintDLg()
 {
-
-    CPaletteWindow.call( this );          // コンストラクタ
+    CPaletteWindow.call( this );       // コンストラクタ
     var self = this;
     
     self.m_Dialog.opacity       = 0.7; // （不透明度）
@@ -62,7 +61,6 @@ function CLivePaintDLg()
         self.m_BtnLivePaint.onClick      = function() { self.onLivePaintClick(); }        
         self.m_BtnCancel.onClick         = function() { self.onCancelClick(); }  
 
-        self.m_SelectedGrText.readonly = true;   // 編集を禁止
         self.m_BtnColorPicker.visible = false;
         self.m_BtnLivePaint.visible = false;
     }
@@ -70,73 +68,6 @@ function CLivePaintDLg()
         alert("GUIが未定です");
         return;
     }
-
-
-
-
-/*
-
-    var ObjPanel   = self.AddPanel();
-
-    // ダイアログにボタン追加
-    m_BtnStartLivePint = ObjPanel.add( "button");
-    m_BtnStartLivePint.text = "ライブペイント開始";
-    m_BtnStartLivePint.onClick = function() {
-        try {
-            if ( typeof StaticActiveDoc  === "undefined" ) {
-                self.CallFunc( "BeginLivePaint_Func" );
-            }
-            else {
-                self.CallFunc( "EndOfLivePaint_Func" );
-            }
-        }
-        catch(e) {
-            alert( e.message );
-        } 
-    }
- 
-    // 選択されたグループを表示する欄を追加
-    m_SelectedGrText = ObjPanel.add( "edittext");
-    m_SelectedGrText.text = "選択されたグループはありません。" ;
-    m_SelectedGrText.readonly = true;   // 編集を禁止
-
-
-    objRb01 = this.AddRadioButton("スポイト");
-    objRb01.visible = false;
-    objRb01.onClick = function() {
-        app.selectTool('Adobe Eyedropper Tool');        // スポイト
-    };
-
-
-    objRb02 = this.AddRadioButton("ライブペイント");
-    objRb02.visible = false;
-    onobjRb02Click
-    objRb02.onClick = function() {
-        app.selectTool('Adobe Planar Paintbucket Tool');    // ライブペイント
-    };
-
-
-    // ダイアログにボタン追加
-    m_BtnCancel = this.AddButton( "閉じる" );
-
-    onCancelClick
-    m_BtnCancel.onClick = function () {
-        var  Obj = CLivePaintDLg.self;
-        try
-        {
-            if ( typeof StaticActiveDoc  !== "undefined" )
-            {
-                alert("ライプペイントを継続中です\nパスに変換して終了します。");
-                Obj.CallFunc( "EndOfLivePaint_Func" );
-            }
-            Obj.CloseDlg();
-        }
-        catch(e)
-        {
-            alert( e.message );
-        }
-    }
-    */
 }
 
 // クラス継承
@@ -154,7 +85,7 @@ CLivePaintDLg.prototype.test =  function() {
     $.writeln( "CLivePaintDLg::test()" );
 }
 
-CLivePaintDLg.prototype.IsLivePaintig =  function(Obj) { 
+CLivePaintDLg.prototype.IsLivePaintig =  function() { 
     if ( typeof StaticActiveDoc  !== "undefined" )
     {
         alert("ライプペイントを継続中です\nパスに変換して終了します。");
@@ -250,6 +181,7 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
 {  
     var ActiveLayer = activeDocument.activeLayer;         
 	var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
+    var  self = CLivePaintDLg.self;
  
     try
     { 
@@ -279,8 +211,8 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             StaticFlagValue = false;
             app.redraw(); 
 
-            if ( Obj.m_BtnColorPicker != undefined ) Obj.m_BtnColorPicker.visible = false;
-            if ( OBj.m_BtnLivePaint != undefined ) Obj.m_BtnLivePaint.visible = false;
+            if ( self.m_BtnColorPicker != undefined ) self.m_BtnColorPicker.visible = false;
+            if ( self.m_BtnLivePaint   != undefined ) self.m_BtnLivePaint.visible   = false;
  
         var Gp ;
  
@@ -417,10 +349,9 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             }
         }
 
-        var  Obj = CLivePaintDLg.self;
-        Obj.SetSelectedText(" ");
+        self.SetSelectedText(" ");
         app.selectTool('Adobe Direct Select Tool');     // ダイレクト選択
-        Obj.m_BtnStartLivePint.text = "ライブペイント開始";
+        self.m_BtnStartLivePint.text = "ライブペイント開始";
         app.activeDocument.selection = [];
         StaticActiveDoc  = undefined;
         StaticGrName = "";
