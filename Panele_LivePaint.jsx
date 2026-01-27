@@ -4,7 +4,7 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2026/01/25
+// Ver.1.0 : 2026/01/27
 
 #target illustrator
 #targetengine "main"
@@ -18,7 +18,13 @@ SELF = (function(){
 $.evalFile(SELF.path + "/ZazLib/" + "PaletteWindow.jsx");
 $.evalFile(SELF.path + "/ZazLib/" + "SupprtFuncLib.jsx");
 
-
+// 言語ごとの辞書を定義
+var LangStrings = {
+    GUI_JSX: {
+        en : "ScriptUI Dialog Builder - Export_EN.jsx",
+        ja : "ScriptUI Dialog Builder - Export_JP.jsx"
+    }
+};
 
 var DlgPaint;
 var StaticFlagValue = false;
@@ -26,8 +32,6 @@ var StaticActiveDoc = undefined;
 var StaticActiveLayer;
 var StaticSelection;
 var StaticGrName;
-var objRb01;
-var objRb02;
 
 // 最大色を定義
 var cMaxColorLivePainr = 100;
@@ -41,68 +45,28 @@ alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 // コンストラクタ    
 function CLivePaintDLg()
 {
-
-    CPaletteWindow.call( this );          // コンストラクタ
+    CPaletteWindow.call( this );       // コンストラクタ
     var self = this;
     
     self.m_Dialog.opacity       = 0.7; // （不透明度）
 
-    var ObjPanel   = self.AddPanel();
+    // GUI用のスクリプトを読み込む
+    var selfFile = new File($.fileName);
+    var currentDir = selfFile.parent;
+    if ( self.LoadGUIfromJSX( currentDir.fullName + "/GUI.Panele_LivePaint/" + LangStrings.GUI_JSX ) )
+    {
+        // GUIに変更を入れる
+        self.m_BtnStartLivePint.onClick  = function() { self.onStartLivePintClick(); }
+        self.m_BtnColorPicker.onClick    = function() { self.onColorPickerClick(); }       
+        self.m_BtnLivePaint.onClick      = function() { self.onLivePaintClick(); }        
+        self.m_BtnCancel.onClick         = function() { self.onCancelClick(); }  
 
-    // ダイアログにボタン追加
-    m_BtnStartLivePint = ObjPanel.add( "button");
-    m_BtnStartLivePint.text = "ライブペイント開始";
-    m_BtnStartLivePint.onClick = function() {
-        try {
-            if ( typeof StaticActiveDoc  === "undefined" ) {
-                self.CallFunc( "BeginLivePaint_Func" );
-            }
-            else {
-                self.CallFunc( "EndOfLivePaint_Func" );
-            }
-        }
-        catch(e) {
-            alert( e.message );
-        } 
+        self.m_BtnColorPicker.visible = false;
+        self.m_BtnLivePaint.visible = false;
     }
- 
-    // 選択されたグループを表示する欄を追加
-    m_SelectedGrText = ObjPanel.add( "edittext");
-    m_SelectedGrText.text = "選択されたグループはありません。" ;
-    m_SelectedGrText.readonly = true;   // 編集を禁止
-
-
-    objRb01 = this.AddRadioButton("スポイト");
-    objRb01.visible = false;
-    objRb01.onClick = function() {
-        app.selectTool('Adobe Eyedropper Tool');        // スポイト
-    };
-
-
-    objRb02 = this.AddRadioButton("ライブペイント");
-    objRb02.visible = false;
-    objRb02.onClick = function() {
-        app.selectTool('Adobe Planar Paintbucket Tool');    // ライブペイント
-    };
-
-
-    // ダイアログにボタン追加
-    m_BtnCancel = this.AddButton( "閉じる" );
-    m_BtnCancel.onClick = function () {
-        var  Obj = CLivePaintDLg.self;
-        try
-        {
-            if ( typeof StaticActiveDoc  !== "undefined" )
-            {
-                alert("ライプペイントを継続中です\nパスに変換して終了します。");
-                Obj.CallFunc( "EndOfLivePaint_Func" );
-            }
-            Obj.CloseDlg();
-        }
-        catch(e)
-        {
-            alert( e.message );
-        }
+    else{
+        alert("GUIが未定です");
+        return;
     }
 }
 
@@ -113,18 +77,19 @@ ClassInheritance(CLivePaintDLg, CPaletteWindow);
 // メソッド
 // ・継承した後に、サブクラスのメソッド を個別に追加すること
  CLivePaintDLg.prototype.SetSelectedText = function( text ) {
-    m_SelectedGrText.text = text;
+    var  self = CLivePaintDLg.self;
+    self.m_SelectedGrText.text = text;
 }
 
 CLivePaintDLg.prototype.test =  function() { 
     $.writeln( "CLivePaintDLg::test()" );
 }
 
-CLivePaintDLg.prototype.IsLivePaintig =  function(Obj) { 
+CLivePaintDLg.prototype.IsLivePaintig =  function() { 
     if ( typeof StaticActiveDoc  !== "undefined" )
     {
         alert("ライプペイントを継続中です\nパスに変換して終了します。");
-        TheObj.CallFunc( "EndOfLivePaint_Func" );
+        this.CallFunc( "EndOfLivePaint_Func" );
     }
 }
 
@@ -133,7 +98,7 @@ CLivePaintDLg.prototype.IsLivePaintig =  function(Obj) {
 CLivePaintDLg.BeginLivePaint_Func = function()
 { 
     var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
-    var  Obj = CLivePaintDLg.self;
+    var  self = CLivePaintDLg.self;
  
     try
     { 
@@ -155,7 +120,7 @@ CLivePaintDLg.BeginLivePaint_Func = function()
 
          if ( SrcGr == undefined ) throw new Error("指示\nパスを含むグループを1づだけ選択してね");
 
-        Obj.SetSelectedText( SrcGr.name );
+        self.SetSelectedText( SrcGr.name );
         StaticGrName = SrcGr.name;
   
         // グループ化されていないパス、または、複合パスが含まれている場合、グループを追加してその中に全てのアイテムを移動させる
@@ -189,12 +154,12 @@ CLivePaintDLg.BeginLivePaint_Func = function()
         app.executeMenuCommand("Make Planet X");       // ライブペイント>作成
         app.redraw();
         app.selectTool('Adobe Planar Paintbucket Tool');     // ライブペイント選択ツールに切り替える
-        m_BtnStartLivePint.text = "ライブペイント終了"; 
+        self.m_BtnStartLivePint.text = "ライブペイント終了"; 
         StaticFlagValue = true;
         app.activeDocument.selection = [];
         
-        if ( objRb01 != undefined ) objRb01.visible = true;
-        if ( objRb02 != undefined ) objRb02.visible = true;
+        if ( self.m_BtnColorPicker != undefined ) self.m_BtnColorPicker.visible = true;
+        if ( self.m_BtnLivePaint   != undefined ) self.m_BtnLivePaint.visible   = true;
 
         alert("ライブペイントを使用できます\nライブペイントツールが選択され、\n選択されたグループのみを色塗りできます。");
     } // try
@@ -216,15 +181,16 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
 {  
     var ActiveLayer = activeDocument.activeLayer;         
 	var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
+    var  self = CLivePaintDLg.self;
  
     try
     { 
             // バカ除け
             var result = confirm( "ライブペイントをパス化しますか？\nなお、パス化可能な最大色は" + cMaxColorLivePainr + "までです" );
-            if ( !result )　throw new Error("");   // なにもしないで関数を抜ける
+            if ( !result ) throw new Error("");   // なにもしないで関数を抜ける
         
            // １つのグループが選択されているかを確認する
-           if ( typeof StaticActiveDoc  === "undefined" )　throw new Error("エラー\nライブペイントがありません");
+           if ( typeof StaticActiveDoc  === "undefined" ) throw new Error("エラー\nライブペイントがありません");
 
             // グループを選択する
             {                
@@ -237,7 +203,7 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
                 }
                 else
                 {
-                    if ( typeof app.activeDocument.selection[0] === "undefined" )　throw new Error("エラー\n選択済みのグループがありません");
+                    if ( typeof app.activeDocument.selection[0] === "undefined" ) throw new Error("エラー\n選択済みのグループがありません");
                     // alert("クリックしたグループを指定します");
                 }
             }
@@ -245,8 +211,8 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             StaticFlagValue = false;
             app.redraw(); 
 
-            if ( objRb01 != undefined ) objRb01.visible = false;
-            if ( objRb02 != undefined ) objRb02.visible = false;
+            if ( self.m_BtnColorPicker != undefined ) self.m_BtnColorPicker.visible = false;
+            if ( self.m_BtnLivePaint   != undefined ) self.m_BtnLivePaint.visible   = false;
  
         var Gp ;
  
@@ -383,10 +349,9 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             }
         }
 
-        var  Obj = CLivePaintDLg.self;
-        Obj.SetSelectedText(" ");
+        self.SetSelectedText(" ");
         app.selectTool('Adobe Direct Select Tool');     // ダイレクト選択
-        m_BtnStartLivePint.text = "ライブペイント開始";
+        self.m_BtnStartLivePint.text = "ライブペイント開始";
         app.activeDocument.selection = [];
         StaticActiveDoc  = undefined;
         StaticGrName = "";
@@ -403,6 +368,53 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
     } // finally
  }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 4. プロトタイプメソッドの定義
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CLivePaintDLg.prototype.onStartLivePintClick = function() {
+    var  self = CLivePaintDLg.self;
+    try {
+        if ( typeof StaticActiveDoc  === "undefined" ) {
+            self.CallFunc( "BeginLivePaint_Func" );
+        }
+        else {
+            self.CallFunc( "EndOfLivePaint_Func" );
+        }
+    }
+    catch(e) {
+        alert( e.message );
+    } 
+}
+
+CLivePaintDLg.prototype.onColorPickerClick = function() {
+    app.selectTool('Adobe Eyedropper Tool');        // スポイト
+}
+
+CLivePaintDLg.prototype.onLivePaintClick = function() {
+    app.selectTool('Adobe Planar Paintbucket Tool');    // ライブペイント
+}
+
+CLivePaintDLg.prototype.onCancelClick = function() {
+    var  self = CLivePaintDLg.self;
+    try
+    {
+        if ( typeof StaticActiveDoc  !== "undefined" )
+        {
+            alert("ライプペイントを継続中です\nパスに変換して終了します。");
+            self.CallFunc( "EndOfLivePaint_Func" );
+        }
+        self.CloseDlg();
+    }
+    catch(e)
+    {
+        alert( e.message );
+    }
+}
+
+
+//----------------------------------------------------------------------
  function ReShape( GpSrc, lp )
  {
     app.activeDocument.selection = [];             
