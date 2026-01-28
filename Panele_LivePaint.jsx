@@ -19,7 +19,7 @@ $.evalFile(SELF.path + "/ZazLib/" + "PaletteWindow.jsx");
 $.evalFile(SELF.path + "/ZazLib/" + "SupprtFuncLib.jsx");
 
 // 言語ごとの辞書を定義
-var LangStrings = {
+var MyDictionary = {
     GUI_JSX: {
         en : "ScriptUI Dialog Builder - Export_EN.jsx",
         ja : "ScriptUI Dialog Builder - Export_JP.jsx"
@@ -37,12 +37,7 @@ var LangStrings = {
 };
 
 // --- LangStringsの辞書から自動翻訳処理 ---
-for (var key in LangStrings) {
-    if (LangStrings.hasOwnProperty(key)) {
-        // 各要素をlocalize関数に通して文字列に置き換える
-        LangStrings[key] = localize(LangStrings[key]);
-    }
-}
+var LangStrings = GetWordsFromDictionary( MyDictionary );
 
 
 var DlgPaint;
