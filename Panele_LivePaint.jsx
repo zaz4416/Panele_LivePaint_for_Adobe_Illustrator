@@ -10,9 +10,9 @@
 #targetengine "main"
 
 
-// 外部のスクリプトを埋め込む
-#include "ZazLib/PaletteWindow.jsx"
-#include "ZazLib/SupprtFuncLib.jsx"
+// スクリプト実行時に外部のJSXを読み込む (#includeにすると、main関数が終了した時点で、ダイアログが表示されなくなる)
+$.evalFile(GetScriptDir() + "ZazLib/PaletteWindow.jsx");
+$.evalFile(GetScriptDir() + "ZazLib/SupprtFuncLib.jsx");
 
 // 言語ごとの辞書を定義
 var MyDictionary = {
@@ -78,9 +78,9 @@ alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 //-----------------------------------
 
 // コンストラクタ    
-function CLivePaintDLg()
+function CLivePaintDLg( scriptName )
 {
-    CPaletteWindow.call( this, _MAX_INSTANCES, false );      // コンストラクタ
+    CPaletteWindow.call( this, scriptName, _MAX_INSTANCES, false );      // コンストラクタ
     var self = this;
     
     self.m_Dialog.opacity       = 0.7; // （不透明度）
@@ -513,14 +513,20 @@ main();
 
 function main()
 { 
-
-    
     // バージョン・チェック
     if( appVersion()[0]  >= 24)
     {
+        // 実行中のスクリプト名を取得（拡張子なし）
+        var scriptName = decodeURI(File($.fileName).name).replace(/\.[^\.]+$/, "");
+
         // 新しいインスタンスを生成
-        var Obj  = new CLivePaintDLg() ;
+        var Obj  = new CLivePaintDLg( scriptName );
         //Obj.addEventListener( 'keydown',  escExit );
+
+        // インデックスをタイトルの先頭に表示
+        var Index = Obj.GetGlobalIndex();
+        var Title = Obj.GetDialogTitle();
+        Obj.SetDialogTitle( "[" + Index + "]" + Title );
 
         // インスタンスを表示
         Obj.show();
