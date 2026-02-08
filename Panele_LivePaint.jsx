@@ -4,7 +4,7 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2026/02/07
+// Ver.1.0 : 2026/02/08
 
 #target illustrator
 #targetengine "main"
@@ -60,13 +60,7 @@ function GetScriptDir() {
 
 // ---------------------------------------------------------------------------------
 
-
 var DlgPaint;
-var StaticFlagValue = false;
-var StaticActiveDoc = undefined;
-var StaticActiveLayer;
-var StaticSelection;
-var StaticGrName;
 
 // 最大色を定義
 var cMaxColorLivePainr = 100;
@@ -84,6 +78,11 @@ function CLivePaintDLg( scriptName )
     var self = this;
     
     self.m_Dialog.opacity       = 0.7; // （不透明度）
+    self.StaticActiveDoc   = undefined;
+    self.StaticActiveLayer = undefined;
+    self.StaticSelection   = undefined;
+    self.StaticGrName      = undefined;
+    self.StaticFlagValue   = false;
 
     // GUI用のスクリプトを読み込む
     if ( self.LoadGUIfromJSX( GetScriptDir() + LangStrings.GUI_JSX ) )
@@ -113,7 +112,7 @@ ClassInheritance(CLivePaintDLg, CPaletteWindow);
 // メソッド
 // ・継承した後に、サブクラスのメソッド を個別に追加すること
  CLivePaintDLg.prototype.SetSelectedText = function( text ) {
-    var  self = CLivePaintDLg.self;
+    var self = this.GetGlobalDialog();
     self.m_SelectedGrText.text = text;
 }
 
@@ -121,8 +120,9 @@ CLivePaintDLg.prototype.test =  function() {
     $.writeln( "CLivePaintDLg::test()" );
 }
 
-CLivePaintDLg.prototype.IsLivePaintig =  function() { 
-    if ( typeof StaticActiveDoc  !== "undefined" )
+CLivePaintDLg.prototype.IsLivePaintig =  function() {
+    var self = this.GetGlobalDialog();
+    if ( typeof self.StaticActiveDoc  !== "undefined" )
     {
         alert("ライプペイントを継続中です\nパスに変換して終了します。");
         this.CallFunc( ".EndOfLivePaint_Func()" );
@@ -131,10 +131,10 @@ CLivePaintDLg.prototype.IsLivePaintig =  function() {
 
 
 
-CLivePaintDLg.BeginLivePaint_Func = function()
+CLivePaintDLg.prototype.BeginLivePaint_Func = function()
 { 
     var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
-    var  self = CLivePaintDLg.self;
+    var self = this.GetGlobalDialog();
  
     try
     { 
@@ -157,7 +157,7 @@ CLivePaintDLg.BeginLivePaint_Func = function()
          if ( SrcGr == undefined ) throw new Error("指示\nパスを含むグループを1づだけ選択してね");
 
         self.SetSelectedText( SrcGr.name );
-        StaticGrName = SrcGr.name;
+        self.StaticGrName = SrcGr.name;
   
         // グループ化されていないパス、または、複合パスが含まれている場合、グループを追加してその中に全てのアイテムを移動させる
         if ( SrcGr.pathItems.length != 0  || SrcGr.compoundPathItems.length != 0 )
@@ -184,14 +184,14 @@ CLivePaintDLg.BeginLivePaint_Func = function()
          } 
  
         app.redraw();
-        StaticActiveDoc    = app.activeDocument;
-        StaticActiveLayer  = StaticActiveDoc .activeLayer; 
-        StaticSelection    = StaticActiveDoc .selection;
+        self.StaticActiveDoc    = app.activeDocument;
+        self.StaticActiveLayer  = self.StaticActiveDoc .activeLayer; 
+        self.StaticSelection    = self.StaticActiveDoc .selection;
         app.executeMenuCommand("Make Planet X");       // ライブペイント>作成
         app.redraw();
         app.selectTool('Adobe Planar Paintbucket Tool');     // ライブペイント選択ツールに切り替える
         self.m_BtnStartLivePint.text = "ライブペイント終了"; 
-        StaticFlagValue = true;
+        self.StaticFlagValue = true;
         app.activeDocument.selection = [];
         
         if ( self.m_BtnColorPicker != undefined ) self.m_BtnColorPicker.visible = true;
@@ -213,11 +213,11 @@ CLivePaintDLg.BeginLivePaint_Func = function()
 }
 
 
-CLivePaintDLg.EndOfLivePaint_Func = function()
+CLivePaintDLg.prototype.EndOfLivePaint_Func = function()
 {  
     var ActiveLayer = activeDocument.activeLayer;         
 	var  ProgressDlg = new Window ('palette', "処理中...", [0,0,300,60],{borderless:true});
-    var  self = CLivePaintDLg.self;
+    var self = this.GetGlobalDialog();
  
     try
     { 
@@ -226,15 +226,15 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
             if ( !result ) throw new Error("");   // なにもしないで関数を抜ける
         
            // １つのグループが選択されているかを確認する
-           if ( typeof StaticActiveDoc  === "undefined" ) throw new Error("エラー\nライブペイントがありません");
+           if ( typeof self.StaticActiveDoc  === "undefined" ) throw new Error("エラー\nライブペイントがありません");
 
             // グループを選択する
             {                
-                if ( StaticFlagValue  )
+                if ( self.StaticFlagValue  )
                 {
                     // ライブペイント開始時に選択されたグループを使用する
-                    app.activeDocument.selection   = StaticSelection;
-                    app.activeDocument.activeLayer = StaticActiveLayer; 
+                    app.activeDocument.selection   = self.StaticSelection;
+                    app.activeDocument.activeLayer = self.StaticActiveLayer; 
                     // alert("お知らせ\nライブペイントを開始したときのグループを指定します");
                 }
                 else
@@ -244,7 +244,7 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
                 }
             }
  
-            StaticFlagValue = false;
+            self.StaticFlagValue = false;
             app.redraw(); 
 
             if ( self.m_BtnColorPicker != undefined ) self.m_BtnColorPicker.visible = false;
@@ -326,7 +326,7 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
                     // [[ アイテムが1つの場合に実施 ]]
                     ReShape( GpSrc, 0 );    // ← この時点で、グループに含まれないアイテムが、ひとつだけ存在している状態になる
 
-                    var NewGp = AddGroup( StaticGrName );   // アイテムを入れるためのグループを作成する
+                    var NewGp = AddGroup( self.StaticGrName );   // アイテムを入れるためのグループを作成する
 
                     var ActiveLayer = activeDocument.activeLayer;
                     var CoPathLrngth = ActiveLayer.compoundPathItems.length;
@@ -389,8 +389,8 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
         app.selectTool('Adobe Direct Select Tool');     // ダイレクト選択
         self.m_BtnStartLivePint.text = LangStrings.Msg_start_live_paint;
         app.activeDocument.selection = [];
-        StaticActiveDoc  = undefined;
-        StaticGrName = "";
+        self.StaticActiveDoc  = undefined;
+        self.StaticGrName = "";
         alert( LangStrings.Msg_end_of_live_paint) ;
     } // try
     catch(e)
@@ -410,9 +410,9 @@ CLivePaintDLg.EndOfLivePaint_Func = function()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 CLivePaintDLg.prototype.onStartLivePintClick = function() {
-    var  self = CLivePaintDLg.self;
+    var self = this.GetGlobalDialog();
     try {
-        if ( typeof StaticActiveDoc  === "undefined" ) {
+        if ( typeof self.StaticActiveDoc  === "undefined" ) {
             self.CallFunc( ".BeginLivePaint_Func()" );
         }
         else {
@@ -433,10 +433,10 @@ CLivePaintDLg.prototype.onLivePaintClick = function() {
 }
 
 CLivePaintDLg.prototype.onCancelClick = function() {
-    var  self = CLivePaintDLg.self;
+    var self = this.GetGlobalDialog();
     try
     {
-        if ( typeof StaticActiveDoc  !== "undefined" )
+        if ( typeof self.StaticActiveDoc  !== "undefined" )
         {
             alert("ライプペイントを継続中です\nパスに変換して終了します。");
             self.CallFunc( ".EndOfLivePaint_Func()" );
