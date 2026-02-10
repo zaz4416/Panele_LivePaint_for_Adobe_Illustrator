@@ -4,7 +4,7 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2026/02/08
+// Ver.1.0 : 2026/02/10
 
 #target illustrator
 #targetengine "main"
@@ -29,14 +29,24 @@ var MyDictionary = {
     Msg_end_of_live_paint: {
         en : "End of live paint",
         ja : "ライブペイントを終了しました"
+    },
+
+    Msg_Require: {
+        en : "This script requires Illustrator 2020.",
+        ja : "このスクリプトは Illustrator 2020以降に対応しています。"
+    },
+
+    Msg_cant_run: {
+        en: "Can't run",
+        ja: "これ以上、起動できません"
     }
 };
 
 // --- LangStringsの辞書から自動翻訳処理 ---
 var LangStrings = GetWordsFromDictionary( MyDictionary );
 
-// オブジェクトの最大保持数
-var _MAX_INSTANCES = 5;
+var _MAX_INSTANCES = 1;         // オブジェクトの最大保持数
+var cMaxColorLivePainr = 100;   // 最大色を定義
 
 
 // --- グローバル関数 -----------------------------------------------------------------
@@ -60,11 +70,6 @@ function GetScriptDir() {
 
 // ---------------------------------------------------------------------------------
 
-var DlgPaint;
-
-// 最大色を定義
-var cMaxColorLivePainr = 100;
-alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
 
 
 //-----------------------------------
@@ -76,32 +81,34 @@ function CLivePaintDLg( scriptName )
 {
     CPaletteWindow.call( this, scriptName, _MAX_INSTANCES, false );      // コンストラクタ
     var self = this;
-    
-    self.m_Dialog.opacity       = 0.7; // （不透明度）
+
     self.StaticActiveDoc   = undefined;
     self.StaticActiveLayer = undefined;
     self.StaticSelection   = undefined;
     self.StaticGrName      = undefined;
     self.StaticFlagValue   = false;
 
-    // GUI用のスクリプトを読み込む
-    if ( self.LoadGUIfromJSX( GetScriptDir() + LangStrings.GUI_JSX ) )
-    {
-        // GUIに変更を入れる
-        self.m_BtnStartLivePint.onClick  = function() { self.onStartLivePintClick(); }
-        self.m_BtnColorPicker.onClick    = function() { self.onColorPickerClick(); }       
-        self.m_BtnLivePaint.onClick      = function() { self.onLivePaintClick(); }        
-        self.m_BtnCancel.onClick         = function() { self.onCancelClick(); }  
+    if ( self.IsDialg()) {
+        self.m_Dialog.opacity  = 0.7; // （不透明度）
 
-        self.m_BtnColorPicker.visible = false;
-        self.m_BtnLivePaint.visible = false;
+        // GUI用のスクリプトを読み込む
+        if ( self.LoadGUIfromJSX( GetScriptDir() + LangStrings.GUI_JSX ) )
+        {
+            // GUIに変更を入れる
+            self.m_BtnStartLivePint.onClick  = function() { self.onStartLivePintClick(); }
+            self.m_BtnColorPicker.onClick    = function() { self.onColorPickerClick(); }       
+            self.m_BtnLivePaint.onClick      = function() { self.onLivePaintClick(); }        
+            self.m_BtnCancel.onClick         = function() { self.onCancelClick(); }  
 
-        // 最後に、新しいインスタンスを追加
-        self.RegisterInstance();
-    }
-    else{
-        alert("GUIが未定です");
-        return;
+            self.m_BtnColorPicker.visible = false;
+            self.m_BtnLivePaint.visible = false;
+
+            // 最後に、新しいインスタンスを追加
+            self.RegisterInstance();
+        }
+        else{
+            alert("GUIが未定です");
+        }
     }
 }
 
@@ -508,13 +515,20 @@ function MoveItems( SrcGrX, DisGrX )
     }
  }
 
- 
-main();
+
+ var DlgPaint = null;
+
+ main();
 
 function main()
 { 
+    var appName = app.name;
+    // 実行結果の例:
+    // "Adobe Illustrator"
+    // "Adobe Photoshop"
+
     // バージョン・チェック
-    if( appVersion()[0]  >= 24)
+    if( appName === "Adobe Illustrator" && appVersion()[0]  >= 24 )
     {
         // 実行中のスクリプト名を取得（拡張子なし）
         var scriptName = decodeURI(File($.fileName).name).replace(/\.[^\.]+$/, "");
@@ -523,17 +537,22 @@ function main()
         var Obj  = new CLivePaintDLg( scriptName );
         //Obj.addEventListener( 'keydown',  escExit );
 
-        // インデックスをタイトルの先頭に表示
-        var Index = Obj.GetGlobalIndex();
-        var Title = Obj.GetDialogTitle();
-        Obj.SetDialogTitle( "[" + Index + "]" + Title );
+        if ( Obj.IsDialg() ) {
+            // インデックスをタイトルの先頭に表示
+            var Index = Obj.GetGlobalIndex();
+            var Title = Obj.GetDialogTitle();
+            Obj.SetDialogTitle( "[" + Index + "]" + Title );
 
-        // インスタンスを表示
-        Obj.show();
+            alert( "お知らせ\n" + cMaxColorLivePainr + "まで、色を扱えます" );
+
+            // インスタンスを表示
+            Obj.show();
+        } else {
+            alert( LangStrings.Msg_cant_run );
+        }
     }
     else
     {
-         var msg = {en : 'This script requires Illustrator 2020 or later.', ja : 'このスクリプトは Illustrator 2020以降に対応しています。'} ;
-        alert(msg) ; 
+        alert( LangStrings.Msg_Require ) ; 
     }
 }
