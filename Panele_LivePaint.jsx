@@ -4,13 +4,16 @@
 </javascriptresource>
 */
 
-// Ver.1.0 : 2026/02/10
+// Ver.1.0 : 2026/03/01
 
 #target illustrator
 #targetengine "main"
 
 
 // スクリプト実行時に外部のJSXを読み込む (#includeにすると、main関数が終了した時点で、ダイアログが表示されなくなる)
+$.evalFile(GetScriptDir() + "ZazLib/ClassInheritance.jsx");
+$.evalFile(GetScriptDir() + "ZazLib/Language.jsx");
+$.evalFile(GetScriptDir() + "ZazLib/GlobalArray.jsx");
 $.evalFile(GetScriptDir() + "ZazLib/PaletteWindow.jsx");
 $.evalFile(GetScriptDir() + "ZazLib/SupprtFuncLib.jsx");
 
