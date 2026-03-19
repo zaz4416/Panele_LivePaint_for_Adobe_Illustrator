@@ -521,7 +521,8 @@ function MoveItems( SrcGrX, DisGrX )
 
  var DlgPaint = null;
 
- main();
+ // main関数を起動
+runMain(main);
 
 function main()
 { 
