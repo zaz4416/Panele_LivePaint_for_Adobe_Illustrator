@@ -521,8 +521,6 @@ function MoveItems( SrcGrX, DisGrX )
 
  var DlgPaint = null;
 
- // main関数を起動
-runMain(main);
 
 function main()
 { 
@@ -560,3 +558,6 @@ function main()
         alert( LangStrings.Msg_Require ) ; 
     }
 }
+
+// エンジン別にmain関数を実行
+runMain( File($.fileName).fsName, main );
