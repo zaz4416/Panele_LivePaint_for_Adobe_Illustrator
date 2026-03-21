@@ -1,4 +1,4 @@
-動作環境 Adobe社のイラストレータで動作します。 source-full.zip　をダウンロードしてください。
+動作環境 Adobe社のイラストレータで動作します。 Panele_LivePaint_for_Adobe_Illustrator-**.zip　をダウンロードしてください。
 
 動作概要 ライブペイントを使うときのサポートツールです。
 
